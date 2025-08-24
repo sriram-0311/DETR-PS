@@ -185,6 +185,20 @@ python evaluation/evaluator.py --eval
 
 ## 🎨 Visualizations
 
+### 🖥️ Interactive Demo
+**Experience DETR-PS in action!** Open [`demo_visualization.html`](demo_visualization.html) in your browser to see an interactive demonstration of our panoptic segmentation results.
+
+![DETR-PS Demo](demo_visualization.html)
+
+*Click to view the interactive demo showing architecture, performance metrics, and segmentation results*
+
+### 📊 Architecture & Results Overview
+The demo visualization showcases:
+- **Input processing pipeline** with real automotive scenes
+- **DETR architecture flow** from backbone to panoptic head
+- **Performance metrics** including PQ, SQ, RQ scores
+- **Segmentation output** with color-coded instances and stuff regions
+
 ### Sample Results
 ![Panoptic Segmentation Results](sample.png)
 
@@ -194,6 +208,15 @@ python evaluation/evaluator.py --eval
 - **Things (Instance Segmentation)**: Cars, trucks, pedestrians, cyclists
 - **Stuff (Semantic Segmentation)**: Roads, sidewalks, buildings, vegetation, sky
 - **Temporal Consistency**: Maintains object identity across video sequences
+
+### 🎯 Generate Your Own Demo
+```bash
+# Option 1: Open interactive HTML demo
+open demo_visualization.html
+
+# Option 2: Generate custom visualization (requires Python)
+python generate_demo_image.py
+```
 
 ## ⚙️ Configuration
 
