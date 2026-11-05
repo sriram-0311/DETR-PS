@@ -1,9 +1,23 @@
+# Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
+# Modified from https://github.com/facebookresearch/detr (Apache License 2.0). See README.
+import json
+from pathlib import Path
+
+import torch
 from torch.utils.data import DataLoader, DistributedSampler
 import math
 import sys
 import time 
 import datetime
 from typing import Iterable
+
+from data.dataloader import build_dataset
+from evaluation.evaluator import MetricLogger, SmoothedValue, collate_fn, evaluate, save_on_master
+from training.config import (ENABLE_WANDB, args, build_pretrained_model, device, run_id,
+                             used_artifact, wandb_experiment_name)
+
+if ENABLE_WANDB:
+    import wandb
 
 def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
                     data_loader: Iterable, optimizer: torch.optim.Optimizer,
@@ -168,4 +182,5 @@ def train():
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
     print('Training time {}'.format(total_time_str))
 
-train()
+if __name__ == "__main__":
+    train()

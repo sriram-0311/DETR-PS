@@ -1,3 +1,11 @@
+# Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
+# Modified from https://github.com/facebookresearch/detr (Apache License 2.0). See README.
+from typing import Optional
+
+import torch
+import torch.nn.functional as F
+from torch import Tensor, nn
+
 import copy
 
 class Transformer(nn.Module):

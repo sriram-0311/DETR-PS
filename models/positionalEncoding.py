@@ -1,3 +1,7 @@
+# Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
+# Modified from https://github.com/facebookresearch/detr (Apache License 2.0). See README.
+from utils.utils import NestedTensor
+import torch
 import math
 from torch import nn
 

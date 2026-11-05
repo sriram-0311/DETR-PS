@@ -1,9 +1,13 @@
 import json
+import os
 from pathlib import Path
 import numpy as np
 import torch
 from PIL import Image
 from panopticapi.utils import rgb2id
+
+from data.data_aug import make_coco_transforms
+from utils.utils import masks_to_boxes
 
 city2int = {
     "aachen": 0,
@@ -114,19 +118,21 @@ def build_cityscapes_panoptic(image_set, args):
     assert img_folder_root.exists(), f'provided path {img_folder_root} does not exist'
     assert ann_folder_root.exists(), f'provided path {ann_folder_root} does not exist'
     
+    root = os.environ.get("CITYSCAPES_ROOT", "/content/drive/MyDrive/cityscapes")
+
     ann_file = {
-        "train": "/content/drive/MyDrive/cityscapes/gtFine/cityscapes_panoptic_train.json",
-        "val": "/content/drive/MyDrive/cityscapes/gtFine/cityscapes_panoptic_val.json"
+        "train": f"{root}/gtFine/cityscapes_panoptic_train.json",
+        "val": f"{root}/gtFine/cityscapes_panoptic_val.json"
     }
 
     img_folder_path = {
-        "train": "/content/drive/MyDrive/cityscapes/leftImg8bit/train",
-        "val": "/content/drive/MyDrive/cityscapes/leftImg8bit/val"
+        "train": f"{root}/leftImg8bit/train",
+        "val": f"{root}/leftImg8bit/val"
     }
 
     ann_folder = {
-        "train": "/content/drive/MyDrive/cityscapes/gtFine/cityscapes_panoptic_train",
-        "val": "/content/drive/MyDrive/cityscapes/gtFine/cityscapes_panoptic_val"
+        "train": f"{root}/gtFine/cityscapes_panoptic_train",
+        "val": f"{root}/gtFine/cityscapes_panoptic_val"
     }
 
     dataset = CityscapesPanoptic(img_folder_path[image_set], ann_folder[image_set], ann_file[image_set],

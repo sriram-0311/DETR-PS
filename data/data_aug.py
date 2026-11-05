@@ -1,8 +1,12 @@
+# Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
+# Modified from https://github.com/facebookresearch/detr (Apache License 2.0). See README.
 import random
 from collections import defaultdict, deque
 import PIL
 import torchvision.transforms as T
 import torchvision.transforms.functional as tvF
+
+from utils.utils import box_xyxy_to_cxcywh, interpolate
 
 def crop(image, target, region):
     cropped_image = tvF.crop(image, *region)

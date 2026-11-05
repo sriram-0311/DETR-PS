@@ -1,6 +1,9 @@
+import os
 import random
 import numpy as np
 import torch
+
+from models.DETR import build_model
 
 seed = 42
 
@@ -10,16 +13,17 @@ random.seed(seed)
 torch.backends.cudnn.deterministic = True
 torch.use_deterministic_algorithms(False)     # missing some deterministic impl
 
-device = torch.device("cuda:0")
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 class Args:
     pass
 args = Args()
-# Postitional encoding
+args.device = str(device)
+# Positional encoding
 args.position_embedding = "sine"
 # CNN Backbone
 args.backbone = "resnet50"
-args.dilation = None
+args.dilation = False
 # Hungarian matcher
 args.set_cost_class = 1
 args.set_cost_bbox = 5
@@ -31,10 +35,10 @@ args.nheads = 8
 args.dim_feedforward = 2048
 args.enc_layers = 6
 args.dec_layers = 6
-args.pre_norm = None
+args.pre_norm = False
 # DETR
 args.num_queries = 100
-args.aux_loss = True # calculate loss at eache decoder layer
+args.aux_loss = True # calculate loss at each decoder layer
 args.masks = True
 args.frozen_weights = None
 args.bbox_loss_coef = 5
@@ -83,25 +87,22 @@ def freeze_first_layers(model, args):
             param.requires_grad = False
 
 
-def build_pretrained_model(args):
-    pre_trained = torch.hub.load('facebookresearch/detr', 'detr_resnet50_panoptic', pretrained=True, return_postprocessor=False, num_classes=250)
-    model, criterion, postprocessors = build_model(args)
+PRETRAINED_URL = "https://dl.fbaipublicfiles.com/detr/detr-r50-panoptic-00ce5173.pth"
 
-    model.detr.backbone.load_state_dict(pre_trained.detr.backbone.state_dict())
-    model.detr.bbox_embed.load_state_dict(pre_trained.detr.bbox_embed.state_dict())
-    model.detr.query_embed.load_state_dict(pre_trained.detr.query_embed.state_dict())
-    model.detr.input_proj.load_state_dict(pre_trained.detr.input_proj.state_dict())
-    model.detr.transformer.load_state_dict(pre_trained.detr.transformer.state_dict())
- 
-    model.bbox_attention.load_state_dict(pre_trained.bbox_attention.state_dict())
-    model.mask_head.load_state_dict(pre_trained.mask_head.state_dict())
-    
+def build_pretrained_model(args):
+    # Everything except the class head comes from the COCO panoptic checkpoint.
+    checkpoint = torch.hub.load_state_dict_from_url(PRETRAINED_URL, map_location="cpu")
+    state = {k: v for k, v in checkpoint["model"].items() if not k.startswith("detr.class_embed")}
+    model, criterion, postprocessors = build_model(args)
+    missing, unexpected = model.load_state_dict(state, strict=False)
+    assert not unexpected and all(k.startswith("detr.class_embed") for k in missing), (missing, unexpected)
+
     freeze_attn(model, args)
 
     return model, criterion, postprocessors
 
-ENABLE_WANDB = True                                      # set if you plan to log on wandb
-used_artifact = '2_2_2_transf_unfreeze_aux:latest'            # if set not train from scratch (detre pretrained on COCO)
+ENABLE_WANDB = bool(os.environ.get("DETR_WANDB"))                                      # set if you plan to log on wandb
+used_artifact = '2_2_2_transf_unfreeze_aux:latest'            # if set not train from scratch (DETR pretrained on COCO)
 wandb_experiment_name = "2_2_1_transf_unfreeze_aux"      # set if starting a new run
 run_id = None                                            # set to None if starting a new run
 

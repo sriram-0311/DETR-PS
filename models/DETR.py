@@ -1,3 +1,17 @@
+# Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
+# Modified from https://github.com/facebookresearch/detr (Apache License 2.0). See README.
+import torch
+import torch.nn.functional as F
+from torch import nn
+
+from models.backbone import build_backbone
+from models.convolutionDecoder import (DETRsegm, PostProcessPanoptic, PostProcessSegm,
+                                       dice_loss, sigmoid_focal_loss)
+from models.transformer import build_transformer
+from utils.hungarianMatcher import build_matcher
+from utils.utils import (NestedTensor, accuracy, box_cxcywh_to_xyxy, generalized_box_iou,
+                         interpolate, nested_tensor_from_tensor_list)
+
 class DETR(nn.Module):
     """ This is the DETR module that performs object detection """
     def __init__(self, backbone, transformer, num_classes, num_queries, aux_loss=False):
@@ -293,6 +307,8 @@ def build_model(args):
         # for panoptic, we just add a num_classes that is large enough to hold
         # max_obj_id + 1, but the exact value doesn't really matter
         num_classes = 34
+    # 250 for the official COCO panoptic checkpoint
+    num_classes = getattr(args, 'num_classes', None) or num_classes
 
     backbone = build_backbone(args)
 
@@ -325,12 +341,13 @@ def build_model(args):
         losses += ["masks"]
     criterion = SetCriterion(num_classes, matcher=matcher, weight_dict=weight_dict,
                              eos_coef=args.eos_coef, losses=losses)
-    criterion.to(device)
+    criterion.to(torch.device(args.device))
     postprocessors = {'bbox': PostProcess()}
     if args.masks:
         postprocessors['segm'] = PostProcessSegm()
         if args.dataset_file == "coco_panoptic":
-            is_thing_map = {i: i > 23 for i in range(num_classes)}
+            # Cityscapes: ids above 23 are things. COCO panoptic: ids up to 90 are things.
+            is_thing_map = getattr(args, 'is_thing_map', None) or {i: i > 23 for i in range(num_classes)}
             postprocessors["panoptic"] = PostProcessPanoptic(is_thing_map, threshold=0.85)
 
     return model, criterion, postprocessors

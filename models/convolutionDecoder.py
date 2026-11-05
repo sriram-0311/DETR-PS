@@ -1,9 +1,16 @@
+# Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
+# Modified from https://github.com/facebookresearch/detr (Apache License 2.0). See README.
 import io
 from collections import defaultdict
 
+import torch
+import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
 from PIL import Image
+from typing import List, Optional
+
+from utils.utils import NestedTensor, box_cxcywh_to_xyxy, interpolate, nested_tensor_from_tensor_list
 
 try:
     from panopticapi.utils import id2rgb, rgb2id

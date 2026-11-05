@@ -1,3 +1,5 @@
+# Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
+# Modified from https://github.com/facebookresearch/detr (Apache License 2.0). See README.
 """
 COCO evaluator that works in distributed mode.
 
@@ -5,7 +7,19 @@ Mostly copy-paste from https://github.com/pytorch/vision/blob/edfd5a7/references
 The difference is that there is less copy-pasting from pycocotools
 in the end of the file, as python3 can suppress prints with contextlib
 """
+import datetime
+import json
 import os
+import time
+from collections import defaultdict, deque
+
+import matplotlib.pyplot as plt
+import torch
+from PIL import Image
+
+from data.dataloader import int2imgid
+from utils.utils import nested_tensor_from_tensor_list
+
 try:
     from panopticapi.evaluation import pq_compute
 except ImportError:
@@ -240,7 +254,9 @@ def log_class_chart(results):
 
     plt.savefig('chart.png')
     plt.show()
-    wandb.log({"chart": wandb.Image(Image.open('chart.png'))})
+    if os.environ.get("DETR_WANDB"):
+        import wandb
+        wandb.log({"chart": wandb.Image(Image.open('chart.png'))})
 
 @torch.no_grad()
 def evaluate(model, criterion, postprocessors, data_loader, device, output_dir):

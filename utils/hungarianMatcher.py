@@ -1,3 +1,7 @@
+# Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
+# Modified from https://github.com/facebookresearch/detr (Apache License 2.0). See README.
+import torch
+from utils.utils import box_cxcywh_to_xyxy, generalized_box_iou
 from scipy.optimize import linear_sum_assignment
 
 class HungarianMatcher(torch.nn.Module):

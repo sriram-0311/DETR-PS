@@ -1,3 +1,5 @@
+# Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
+# Modified from https://github.com/facebookresearch/detr (Apache License 2.0). See README.
 from collections import OrderedDict
 import torch
 import torch.nn.functional as F
@@ -5,6 +7,9 @@ import torchvision
 from torch import nn
 from torchvision.models._utils import IntermediateLayerGetter
 from typing import Dict, List
+
+from models.positionalEncoding import build_position_encoding
+from utils.utils import NestedTensor
 
 class FrozenBatchNorm2d(torch.nn.Module):
     """
